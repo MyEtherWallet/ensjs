@@ -179,6 +179,73 @@ var testSuiteGenerator = function(beforeHook, afterHook) {
 				}).catch(assert.isError);
 			});
 		});
+
+        describe('#text()', function() {
+            it('should set and get text records', function(done) {
+              var resolver = ens.resolver('foo.eth');
+              resolver.setText('key', 'value', { from: accounts[0] })
+                .then(function() {
+                  return resolver.text('key');
+                })
+                .then(function(text) {
+                  assert.equal(text, 'value');
+                  done();
+                })
+                .catch(assert.ifError);
+            });
+          
+            it('should return empty string for non-existent text records', function(done) {
+              var resolver = ens.resolver('foo.eth');
+              resolver.text('nonexistent')
+                .then(function(text) {
+                  assert.equal(text, '');
+                  done();
+                })
+                .catch(assert.ifError);
+            });
+          });
+          
+        describe('#contenthash()', function() {
+            it('should set and get content hash', function(done) {
+              var resolver = ens.resolver('foo.eth');
+              var hash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+              resolver.setContenthash(hash, { from: accounts[0] })
+                .then(function() {
+                  return resolver.contenthash();
+                })
+                .then(function(contenthash) {
+                  assert.equal(contenthash, hash);
+                  done();
+                })
+                .catch(assert.ifError);
+            });
+          });
+          
+        describe('#multicoinAddr()', function() {
+            it('should set and get addresses for different coins', function(done) {
+              var resolver = ens.resolver('foo.eth');
+              var btcAddress = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+              var ethAddress = '0x0000000000000000000000000000000000000001';
+              
+              Promise.all([
+                resolver.setMulticoinAddr(0, btcAddress, { from: accounts[0] }), // BTC
+                resolver.setMulticoinAddr(60, ethAddress, { from: accounts[0] }) // ETH (coin type 60)
+              ])
+              .then(function() {
+                return Promise.all([
+                  resolver.multicoinAddr(0), // BTC
+                  resolver.multicoinAddr(60) // ETH
+                ]);
+              })
+              .then(function(addresses) {
+                assert.equal(addresses[0], btcAddress);
+                assert.equal(addresses[1], ethAddress);
+                done();
+              })
+              .catch(assert.ifError);
+            });
+          });
+          
 	}
 }
 
